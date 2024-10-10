@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+
+import contactService from './services/contacts'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 
 const App = () => {
 
+  const dataUrl = 'http://localhost:3001/persons';
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchValue, setSearchValue] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
+    contactService
+      .getAll()
       .then(response => {
         setPersons(response.data)
       })
@@ -33,14 +35,50 @@ const App = () => {
 
   const addContact = (event) => {
     event.preventDefault()
-    console.log(persons)
+
     if(persons.find(person => person.name === newName)) {
-      alert(`${newName} is already added to phonebook`)
+      if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+        const findedPerson = persons.find(person => person.name === newName)
+        const updatedPersonData = {...findedPerson, number: newNumber}
+
+        contactService
+          .updateOne(findedPerson.id, updatedPersonData)
+          .then(response => {
+            setPersons(persons.map(person => person.id !== response.data.id ? person : response.data));
+          })
+      }
     } else {
-      setPersons(persons.concat({name: newName, number: newNumber}))
-      setNewName("")
-      setNewNumber("")
+      const newContact = {
+        name: newName,
+        number: newNumber
+      }
+
+      contactService
+        .create(newContact)
+        .then(response => {
+          setPersons(persons.concat(response.data))
+          setNewName("")
+          setNewNumber("")
+        })
+        .catch(error => {
+          console.error('Error adding contact:', error);
+        })
     }
+
+  }
+
+  const deleteContact = (name, id) => {
+    if(window.confirm(`Delete ${name}?`)) {
+      contactService
+      .deleteOne(id)
+      .then(response => 
+        setPersons(persons.filter(person => person.id !== response.data.id))  // update local state
+      )
+      .catch(error => {
+        console.error('Failed to delete contact', error);
+      })
+    }
+
   }
 
   const searchValueToValue = searchValue.toLowerCase()
@@ -55,7 +93,7 @@ const App = () => {
       <PersonForm onSubmitForm={addContact} nameChange={handleNameChange} numberChange={handleNumberChange} nameVal={newName} numberVal={newNumber}/>
 
       <h3>Numbers</h3>
-      <Persons persons={contactsToShow} />
+      <Persons persons={contactsToShow} deleteData={deleteContact}/>
 
     </div>
   )

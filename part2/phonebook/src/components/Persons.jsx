@@ -1,10 +1,14 @@
 import PropTypes from 'prop-types'
 
-const Persons = ({persons}) => {
+const Persons = ({persons, deleteData}) => {
 
     return (
         <div>
-            {persons.map(person => <p key={person.name}>{person.name} {person.number}</p>)}
+            {persons.map(person => 
+                <div key={person.id}>
+                    <span >{person.name} {person.number}</span>
+                    <button onClick={() => deleteData(person.name, person.id)}>delete</button>
+                </div>)}
         </div>
     )
 }
