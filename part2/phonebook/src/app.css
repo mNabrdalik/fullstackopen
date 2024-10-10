@@ -1,0 +1,22 @@
+body {
+    color: #2e2e2e;
+    padding: 48px 64px;
+    background-color: #ffffff;
+}
+
+.notification {
+    width: 100%;
+    border: 1px solid #ffffff;
+}
+
+.notification-error {
+    background-color: #FCE8E8;
+    border-color: #E11D1D;
+    color: #BB3030;
+}
+
+.notification-success {
+    background-color: #EAFDE8;
+    border-color: #2CE71B;
+    color: #2A7F22;
+}

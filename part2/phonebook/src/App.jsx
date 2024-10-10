@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react'
 
+import './app.css'
+
 import contactService from './services/contacts'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import Notification from './components/Notification'
 
 const App = () => {
 
-  const dataUrl = 'http://localhost:3001/persons';
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchValue, setSearchValue] = useState('')
+  const [notification, setNotification] = useState({
+    content: "",
+    type: "success"
+  })
 
   useEffect(() => {
     contactService
@@ -44,7 +50,19 @@ const App = () => {
         contactService
           .updateOne(findedPerson.id, updatedPersonData)
           .then(response => {
+            setNotification({
+              type: "success",
+              content: `${response.data.name} phone number was changed`
+            })
             setPersons(persons.map(person => person.id !== response.data.id ? person : response.data));
+          })
+          .catch(error => {
+            setNotification({
+              type: "error",
+              content: `${findedPerson.name} has already been removed from server`
+            })
+            setPersons(persons.filter(person => person.id !== findedPerson.id))
+            //console.error('Failed to update contact:', error);
           })
       }
     } else {
@@ -56,6 +74,10 @@ const App = () => {
       contactService
         .create(newContact)
         .then(response => {
+          setNotification(prevNotification => ({
+            ...prevNotification,
+            content: `${response.data.name} was added to contacts`
+          }))
           setPersons(persons.concat(response.data))
           setNewName("")
           setNewNumber("")
@@ -75,6 +97,11 @@ const App = () => {
         setPersons(persons.filter(person => person.id !== response.data.id))  // update local state
       )
       .catch(error => {
+        setNotification({
+          type: "error",
+          content: `${name} has already been removed from server`
+        })
+        setPersons(persons.filter(person => person.id !== id))
         console.error('Failed to delete contact', error);
       })
     }
@@ -86,6 +113,7 @@ const App = () => {
 
   return (
     <div>
+      <Notification message={notification.content}></Notification>
       <h2>Phonebook</h2>
       <Filter change={handleFilterChange} val={searchValue}/>
       
