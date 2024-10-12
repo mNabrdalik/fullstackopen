@@ -62,7 +62,7 @@ const App = () => {
               content: `${findedPerson.name} has already been removed from server`
             })
             setPersons(persons.filter(person => person.id !== findedPerson.id))
-            //console.error('Failed to update contact:', error);
+            console.error('Failed to update contact:', error);
           })
       }
     } else {
@@ -93,9 +93,13 @@ const App = () => {
     if(window.confirm(`Delete ${name}?`)) {
       contactService
       .deleteOne(id)
-      .then(response => 
+      .then(response => {
+        setNotification(prevNotification => ({
+          ...prevNotification,
+          content: `${response.data.name} was successful deleted from contacts`
+        }))
         setPersons(persons.filter(person => person.id !== response.data.id))  // update local state
-      )
+      })
       .catch(error => {
         setNotification({
           type: "error",
@@ -113,7 +117,7 @@ const App = () => {
 
   return (
     <div>
-      <Notification message={notification.content}></Notification>
+      <Notification message={notification.content} type={notification.type}></Notification>
       <h2>Phonebook</h2>
       <Filter change={handleFilterChange} val={searchValue}/>
       
