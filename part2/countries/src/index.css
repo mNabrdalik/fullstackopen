@@ -1,0 +1,16 @@
+body {
+    background-color: #f3f3f3;
+}
+
+.country__name {
+    display: flex;
+    gap: 8px;
+}
+
+.country__data.hide {
+    display: none;
+}
+
+.country__data.show {
+    display: block;
+}

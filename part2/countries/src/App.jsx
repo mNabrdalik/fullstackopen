@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
+import CountryData from './components/CountryData';
+import CountryList from './components/CountryList';
 
 function App() {
   const dataUrl = 'https://studies.cs.helsinki.fi/restcountries/api/';
   const [countries, setCountries] = useState([]);
   const [searchValue, setSearchValue] = useState("")
   const [result, setSearchResults ] = useState("")
+  const [visibleCountries, setVisibleCountries] = useState({});
 
 // Fetch all countries once on mount
 useEffect(() => {
@@ -38,32 +41,28 @@ useEffect(() => {
       setSearchResults (<p>Too many matches, specify another filter</p>)
 
     } else if (filteredCountriesLength <= 10 && filteredCountriesLength > 1) {
-      const countriesList = filteredCountries.map(country => (
-        <div key={country.cca3}>
-          <p>{country.name.common}</p>
-        </div>
-      ));
-      setSearchResults (countriesList)
+      setSearchResults(
+        <CountryList
+          countries={filteredCountries}
+          visibleCountries={visibleCountries}
+          toggleVisibility={toggleVisibility}
+        />
+      );
 
     } else if (filteredCountriesLength === 1){
       const oneCountry = filteredCountries[0]
-      const langList = Object.entries(oneCountry.languages).map(([key, value]) => (
-        <li key={key}>{value}</li>
-      ));
-      const countryInfo = (
-        <div>
-          <h2>{oneCountry.name.common}</h2>
-          <p>capital {oneCountry.capital}</p>
-          <p>area {oneCountry.area}</p>
-          <h3>Languages</h3>
-          <ul>{langList}</ul>
-          <img src={oneCountry.flags.png} alt={`${oneCountry.name.common} flag`} />
-        </div>
-      );
-      setSearchResults (countryInfo)
+      setSearchResults(<CountryData country={oneCountry} />);
+
     }
 
-  }, [searchValue, countries])
+  }, [searchValue, countries, visibleCountries])
+
+  const toggleVisibility  = (countryId) => {
+    setVisibleCountries(prev => ({
+      ...prev,
+      [countryId]: !prev[countryId] // zmienia widoczność dla konkretnego kraju
+    }));
+  }
 
   const onChangeHandler = (event) => {
     setSearchValue(event.target.value)
